@@ -1,7 +1,7 @@
 # ==============================================================================
 # Render Blueprint Specification for HealthDevice Ecosystem
 # ==============================================================================
-# One-shot automated deployment of both Frontend (React/Vite SPA) and
+# Fully automated zero-prompt deployment of both Frontend (React/Vite SPA) and
 # Backend (Node/Express API with Supabase & Groq AI).
 # ==============================================================================
 
@@ -23,25 +23,20 @@ services:
       - key: PORT
         value: 10000
 
-      # Allowed CORS origin from the frontend Render site (e.g. https://healthdevice-frontend.onrender.com)
       - key: FRONTEND_URL
-        sync: false
+        value: https://healthdevice-frontend.onrender.com
 
-      # Supabase Project Credentials
       - key: SUPABASE_URL
-        sync: false
+        value: https://ssupmhqrfspmezcvmgbv.supabase.co
 
-      # Supabase Service Role Secret Key (Must only exist on the backend)
       - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false
+        value: sb_publishable_xtCDXtgVEAlwtAgjnKnPcA_Ke0WhUyG
 
-      # Supabase PostgreSQL Pooled Connection String (Port 6543)
       - key: DATABASE_URL
-        sync: false
+        value: ""
 
-      # Groq Cloud API Key for AI Health Assistant (optional)
       - key: GROQ_API_KEY
-        sync: false
+        value: ""
 
   # ----------------------------------------------------------------------------
   # 2. Frontend Web Portal (React + Vite Static Site)
@@ -54,18 +49,15 @@ services:
     staticPublishPath: dist
     autoDeploy: true
     routes:
-      # SPA fallback rewrite: ensures client-side routes (e.g. /ai, /alarms, /auth) resolve on page reload
       - type: rewrite
         source: /*
         destination: /index.html
     envVars:
-      # Base URL pointing to the deployed backend web service above
       - key: VITE_API_BASE_URL
-        sync: false
+        value: https://healthdevice-backend.onrender.com
 
-      # Supabase Public API Credentials (Safe for client-side usage)
       - key: VITE_SUPABASE_URL
-        sync: false
+        value: https://ssupmhqrfspmezcvmgbv.supabase.co
 
       - key: VITE_SUPABASE_ANON_KEY
-        sync: false
+        value: sb_publishable_xtCDXtgVEAlwtAgjnKnPcA_Ke0WhUyG
