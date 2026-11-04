@@ -1,5 +1,8 @@
 # HealthDevice: Smart Wearable Health Capsule & AI Posture Ecosystem
 
+[![Release](https://img.shields.io/github/v/release/shrayhere/Health-Device-?color=brightgreen)](https://github.com/shrayhere/Health-Device-/releases/latest)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 An open-architecture wearable health capsule built around the **ESP32-C3 (32-bit RISC-V)**, featuring real-time optical PPG biosensing, 6-axis IMU tilt and step tracking, a 32-screen OLED UI engine, and a cross-platform companion software suite for Android, Windows, and AI desktop webcam posture coaching.
 
 ---
