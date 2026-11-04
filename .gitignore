@@ -31,3 +31,15 @@
 # Logs
 *.log
 
+# Node & Frontend Build Caches
+**/node_modules/
+**/dist/
+**/dist-ssr/
+
+# Secrets & Environment Files (Strictly excluded)
+**/.env
+**/.env.*
+**/.env.local
+!**/.env.example
+
+
