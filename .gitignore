@@ -1,0 +1,33 @@
+# Compiled Binaries & Release Archives
+*.apk
+*.exe
+*.zip
+*.tar.gz
+*.7z
+
+# Backup Folders
+*_backup*/
+*.bak
+*.bak*
+
+# Flutter / Dart Build Caches
+**/build/
+**/.dart_tool/
+**/.flutter-plugins-dependencies
+**/windows/flutter/ephemeral/
+**/linux/flutter/ephemeral/
+**/macos/Flutter/ephemeral/
+
+# Python Caches
+**/__pycache__/
+*.pyc
+*.pyo
+
+# IDE & Editor files
+**/.idea/
+**/.vscode/
+*.iml
+
+# Logs
+*.log
+

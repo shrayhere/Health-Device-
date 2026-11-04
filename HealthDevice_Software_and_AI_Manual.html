@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HealthDevice Software Architecture, Critical Code Analysis & AI Posture Cam Deep Dive</title>
+<style>
+  @page {
+    size: A4;
+    margin: 20mm 16mm 20mm 16mm;
+    @bottom-right {
+      content: counter(page);
+    }
+  }
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    color: #1e293b;
+    background-color: #ffffff;
+    font-size: 10.5pt;
+    margin: 0;
+    padding: 0;
+  }
+  .header-cover {
+    border-bottom: 3px solid #0284c7;
+    padding-bottom: 18px;
+    margin-bottom: 25px;
+  }
+  .title {
+    font-size: 24pt;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 6px 0;
+    letter-spacing: -0.5px;
+  }
+  .subtitle {
+    font-size: 13pt;
+    font-weight: 500;
+    color: #0284c7;
+    margin: 0 0 10px 0;
+  }
+  .meta-tag {
+    display: inline-block;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 3px 9px;
+    border-radius: 4px;
+    font-size: 8.5pt;
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  h1 {
+    font-size: 16pt;
+    font-weight: 700;
+    color: #0f172a;
+    border-bottom: 1.5px solid #e2e8f0;
+    padding-bottom: 6px;
+    margin-top: 26px;
+    margin-bottom: 12px;
+    page-break-after: avoid;
+  }
+  h2 {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #0369a1;
+    margin-top: 18px;
+    margin-bottom: 8px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #334155;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    page-break-after: avoid;
+  }
+  p {
+    margin: 0 0 10px 0;
+    text-align: justify;
+  }
+  ul, ol {
+    margin: 0 0 12px 0;
+    padding-left: 22px;
+  }
+  li {
+    margin-bottom: 4px;
+  }
+  .callout {
+    background-color: #f8fafc;
+    border-left: 4px solid #0284c7;
+    padding: 10px 14px;
+    margin: 12px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 10pt;
+  }
+  .callout-title {
+    font-weight: 700;
+    color: #0284c7;
+    margin-bottom: 3px;
+  }
+  .callout-warn {
+    border-left-color: #f59e0b;
+    background-color: #fffbeb;
+  }
+  .callout-warn .callout-title {
+    color: #d97706;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px 0;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    border: 1px solid #cbd5e1;
+    padding: 7px 10px;
+    text-align: left;
+  }
+  th {
+    background-color: #f1f5f9;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  tr:nth-child(even) {
+    background-color: #f8fafc;
+  }
+  pre {
+    background-color: #0f172a;
+    color: #f8fafc;
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 8.5pt;
+    line-height: 1.45;
+    overflow-x: auto;
+    margin: 10px 0 14px 0;
+    page-break-inside: avoid;
+  }
+  code {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 9pt;
+    background-color: #f1f5f9;
+    color: #0369a1;
+    padding: 2px 5px;
+    border-radius: 3px;
+  }
+  pre code {
+    background-color: transparent;
+    color: inherit;
+    padding: 0;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+  .diagram-box {
+    background: #f8fafc;
+    border: 1px dashed #94a3b8;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 12px 0;
+    font-family: 'Consolas', monospace;
+    font-size: 8.5pt;
+    line-height: 1.35;
+    page-break-inside: avoid;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-cover">
+  <div class="title">HealthDevice: Engineering Architecture Manual</div>
+  <div class="subtitle">Complete Technical Guide to Software Compilation, Critical Source Code Analysis & AI Posture Cam Engine</div>
+  <div>
+    <span class="meta-tag">Wearable Firmware</span>
+    <span class="meta-tag">Flutter Multiplatform</span>
+    <span class="meta-tag">MediaPipe AI Pose Estimation</span>
+    <span class="meta-tag">Inno Setup Packaging</span>
+    <span class="meta-tag">ESP32-C3 Super Mini</span>
+  </div>
+</div>
+
+<h1>Section 1: How the Software & Firmware Are Built</h1>
+
+<p>
+The HealthDevice platform comprises three coordinated software tiers: the embedded bare-metal ESP32-C3 firmware, a cross-platform Flutter application (targeting Android and Windows 64-bit), and an autonomous Python computer-vision posture tracker.
+</p>
+
+<h2>1.1 Wearable Firmware Build Pipeline (ESP32-C3)</h2>
+<p>
+The firmware is written in C++ using the Arduino-ESP32 framework for Espressif's RISC-V architecture. Compilation is orchestrated using the Arduino IDE or <code>arduino-cli</code> against the <code>ESP32C3 Dev Module</code> target definition.
+</p>
+
+<div class="callout">
+  <div class="callout-title">Firmware Build Pre-requisites & Compiler Settings</div>
+  <ul>
+    <li><strong>Target Core:</strong> <code>esp32</code> by Espressif Systems (v2.0.x or v3.0.x).</li>
+    <li><strong>Board Selection:</strong> <code>ESP32C3 Dev Module</code>.</li>
+    <li><strong>CPU Frequency:</strong> 160 MHz (Standard) or 80 MHz (Low-Power Profile).</li>
+    <li><strong>Flash Frequency & Mode:</strong> 80 MHz, DIO (Dual I/O).</li>
+    <li><strong>USB CDC on Boot:</strong> Enabled (for serial diagnostics over native USB).</li>
+    <li><strong>Required External Libraries:</strong> Adafruit GFX, Adafruit SSD1306, SparkFun MAX3010x Pulse and Proximity Sensor Library.</li>
+  </ul>
+</div>
+
+<p>
+<strong>Compilation Step:</strong> Run <code>Verify / Upload</code> in the Arduino IDE. The compiler links <code>HealthDevice.ino</code> with 14 modular C++ implementation units, assembling an optimized binary image into flash memory partitions (App, NVS, SPIFFS).
+</p>
+
+<h2>1.2 Mobile Android Build Pipeline (Release APK)</h2>
+<p>
+The Android application is built from the root Flutter workspace (<code>healthdeviceapp</code>). It targets Android API Level 21 through 34+ using Gradle 8.x and Android Gradle Plugin (AGP).
+</p>
+<pre><code># Command executed in healthdeviceapp directory:
+flutter build apk --release
+
+# Output path:
+build/app/outputs/flutter-apk/app-release.apk (56.6 MB)
+Copied to: D:\SG\MAIN FILES\Health Device.apk</code></pre>
+<p>
+<strong>Key Build Mechanics:</strong>
+</p>
+<ul>
+  <li><strong>Tree Shaking:</strong> Unused vector glyphs from <code>MaterialIcons-Regular.otf</code> are tree-shaken (reduced from 1.6 MB to 22 KB, a 98.7% payload reduction).</li>
+  <li><strong>R8 Minification & Bytecode Optimization:</strong> Unused Java/Kotlin classes from BLE and network plugins are stripped.</li>
+  <li><strong>AOT (Ahead-Of-Time) Native Compilation:</strong> Dart code is compiled into native ARM64 and ARMv7 machine code (<code>libapp.so</code>), ensuring zero JIT warm-up latency.</li>
+</ul>
+
+<h2>1.3 Windows Desktop Build Pipeline (64-bit Standalone)</h2>
+<p>
+The Windows desktop software compiles via Microsoft Visual Studio 2022 C++ toolchain (MSVC) and CMake into a native 64-bit Win32 executable.
+</p>
+<pre><code># Command executed in healthdeviceapp directory:
+flutter build windows --release
+
+# Output path:
+build/windows/x64/runner/Release/Health Device.exe</code></pre>
+<p>
+<strong>Desktop Artifact Bundling:</strong> Unlike Android, a Windows Flutter app requires its runtime engine and plugin DLLs alongside the main executable:
+</p>
+<ul>
+  <li><code>Health Device.exe</code> &mdash; Native C++ Win32 shell hosting the Flutter embedder window.</li>
+  <li><code>flutter_windows.dll</code> &mdash; Core Skia rendering engine and platform dispatcher.</li>
+  <li><code>flutter_blue_plus_winrt_plugin.dll</code> &mdash; Windows Runtime (WinRT) Bluetooth Low Energy bridge.</li>
+  <li><code>app_links_plugin.dll</code> & <code>url_launcher_windows_plugin.dll</code> &mdash; Deep link and external browser dispatchers.</li>
+  <li><code>data/</code> &mdash; Contains compiled Dart AOT binary (<code>app.so</code>), fonts, shaders, and assets.</li>
+</ul>
+
+<h2>1.4 Inno Setup Installer Packaging (Windows)</h2>
+<p>
+To distribute the PC software as an industry-standard Windows installer, an Inno Setup script (<code>windows_installer_script.iss</code>) is compiled using <code>D:\Inno Setup 7\ISCC.exe</code>.
+</p>
+<pre><code># Command to compile installer:
+&amp; "D:\Inno Setup 7\ISCC.exe" "D:\SG\MAIN FILES\healthdeviceapp\windows_installer_script.iss"
+
+# Output Executable:
+D:\HealthDevice_Setup_x64.exe (16.17 MB)</code></pre>
+<p>
+<strong>Packaging Features:</strong>
+</p>
+<ul>
+  <li><strong>LZMA2/Ultra64 Solid Compression:</strong> Compresses the 80 MB bundle down to 16.17 MB.</li>
+  <li><strong>Directory Staging:</strong> Bundles the Flutter release runtime, the Python AI posture tracker, voice prompts, and MediaPipe AI models into <code>{autopf}\Health Device</code>.</li>
+  <li><strong>Automated Shortcuts & Uninstaller:</strong> Generates Desktop and Start Menu icons with <code>app_icon.ico</code>, and registers clean uninstallation entries in Windows Control Panel.</li>
+</ul>
+
+<div class="page-break"></div>
+
+<h1>Section 2: Critical Code Analysis & Engineering Walkthrough</h1>
+
+<p>
+This section dissects the vital code mechanisms in both the firmware and client software that ensure real-time responsiveness, crash-proof arbitration, and persistent multi-alarm illumination.
+</p>
+
+<h2>2.1 Firmware: Non-Blocking Delta-Time Execution Engine</h2>
+<p>
+Wearable firmware must never freeze or execute blocking delays. In <code>HealthDevice.ino</code>, all operational subsystems execute on cooperative delta-time schedules:
+</p>
+<pre><code>// HealthDevice.ino: Main Execution Loop
+void loop() {
+  bleUpdate();               // Maintain incoming BLE characteristic buffers
+  ButtonEvent ev = button::update(); // Read asynchronous debounce FSM
+  if (ev != BTN_NONE) {
+    handleButtonEvent(ev);   // Immediate click routing
+    if (ev != BTN_LOW_POWER_HOLD) display::noteActivity();
+  }
+  display::updateTimeout();  // Handle auto-sleep OLED dimming
+  sensors::update();         // Read MAX30102 PPG FIFO and MPU-6500 IMU
+  timeManager::update();     // Maintain virtual RTC and NTP synchronization
+  alarms::update();          // Check 24-hour match across all 5 alarms
+  reminders::update();       // Hydration and movement schedule triggers
+  wellness::update();        // Activity and wellness tracker
+  updatePostureAlert();      // Posture degradation escalation (30s / 60s)
+  alerts::update();          // Non-blocking buzzer pattern step generator
+  updateAlertArbitration();  // Priority stack screen takeover arbitration
+  updateStatusLed();         // Modulate RGB LED PWM hardware channels
+  display::render();         // Push dirty pixel buffer to SSD1306 OLED
+  delay(1);                  // Yield CPU to FreeRTOS IDLE task (WDT feed)
+}</code></pre>
+<div class="callout">
+  <div class="callout-title">Why this matters:</div>
+  The <code>delay(1)</code> at the end yields control to the underlying ESP-IDF FreeRTOS scheduler, feeding the hardware Watchdog Timer (WDT) and allowing the Wi-Fi/BLE radio stack to handle background interrupts without dropping packets.
+</div>
+
+<h2>2.2 Firmware: PPG Pulse & Blood Oxygen (SpO2) Calculation</h2>
+<p>
+In <code>sensors.cpp</code>, the optical sensor measures minute volumetric blood changes in capillary tissue:
+</p>
+<pre><code>// sensors.cpp: Optical PPG Peak Detection & Ratio of Ratios
+// 1. Finger presence verification
+if (irValue &lt; HR_FINGER_THRESHOLD) { // 100,000 threshold
+  fingerDetected = false;
+  return;
+}
+
+// 2. Optical Ratio of Ratios calculation (R)
+float red_ac = red_max - red_min;
+float red_dc = (red_max + red_min) / 2.0f;
+float ir_ac  = ir_max - ir_min;
+float ir_dc  = (ir_max + ir_min) / 2.0f;
+
+if (ir_ac &gt; 0 &amp;&amp; ir_dc &gt; 0 &amp;&amp; red_dc &gt; 0) {
+  float R = (red_ac / red_dc) / (ir_ac / ir_dc);
+  
+  // Empirical pulse-oximetry calibration polynomial
+  float calculatedSpo2 = 110.0f - 25.0f * R;
+  spo2 = constrain((int)calculatedSpo2, 80, 100);
+}
+
+// 3. Heart Rate peak-to-peak timing
+if (checkForBeat(irValue)) {
+  unsigned long now = millis();
+  unsigned long delta = now - lastBeatMs;
+  lastBeatMs = now;
+  
+  if (delta &gt; 300 &amp;&amp; delta &lt; 2000) { // 30 - 200 BPM valid window
+    int rawBpm = 60000 / delta;
+    bpm = (bpm * 3 + rawBpm) / 4;    // 4-sample moving average filter
+  }
+}</code></pre>
+
+<h2>2.3 Firmware: 4-Tier Alert Arbitration & Screen Takeover</h2>
+<p>
+To ensure an incoming wake-up alarm or timer alert is never suppressed by a low-priority notification, <code>updateAlertArbitration()</code> in <code>HealthDevice.ino</code> enforces strict hierarchical priority:
+</p>
+<pre><code>// HealthDevice.ino: Alert Priority Arbitration Stack
+static void updateAlertArbitration() {
+  DeviceScreen current = display::getCurrentScreen();
+  AlertPriority active = alerts::getActive();
+
+  // Priority 1: ALARM has absolute top priority
+  if (active == ALERT_ALARM) {
+    if (current != SCR_ALERT_ALARM) {
+      screenBeforeAlert = (current == SCR_ALERT_POSTURE || 
+                           current == SCR_ALERT_REMINDER || 
+                           current == SCR_ALERT_TIMER_DONE) ? SCR_HOME : current;
+      display::setScreen(SCR_ALERT_ALARM);
+      display::wake(); // Force display awake even if timed out
+    }
+    return;
+  }
+
+  // Priority 2 - 4: Handled only when no higher overlay is blocking
+  bool onOverlay = (current == SCR_ALERT_ALARM || current == SCR_ALERT_REMINDER || 
+                    current == SCR_ALERT_TIMER_DONE);
+  if (!onOverlay) {
+    if (active == ALERT_TIMER) {
+      display::setScreen(SCR_ALERT_TIMER_DONE);
+      display::wake();
+      if (settings::getSoundEnabled()) alerts::beepPattern(4, 200, 200);
+    } else if (active == ALERT_REMINDER) {
+      display::setScreen(SCR_ALERT_REMINDER);
+      display::wake();
+      if (settings::getSoundEnabled()) alerts::beepPattern(2, 150, 150);
+    }
+  }
+}</code></pre>
+
+<h2>2.4 Firmware: Multi-Alarm Engine with Custom 24-Bit RGB Illumination</h2>
+<p>
+The alarm engine in <code>alarms.cpp</code> and <code>HealthDevice.ino</code> stores 5 independent alarms, custom RGB color channels, and recurrence masks in NVS flash:
+</p>
+<pre><code>// alarms.cpp: Day Matching & Zero-Day Fallback Logic
+bool dayMatches = list[i].days[dt.weekday];
+if (!anyDaySelected(list[i].days)) {
+  dayMatches = true; // Unconstrained alarms fire every day
+}
+
+if (minuteOfDay == target &amp;&amp; lastFiredMinuteOfDay[i] != minuteOfDay) {
+  lastFiredMinuteOfDay[i] = minuteOfDay; // Prevent re-triggering in same minute
+  ringingIndex = i;
+  alerts::raise(ALERT_ALARM);
+  alerts::buzzerContinuousStart();
+  break;
+}
+
+// HealthDevice.ino: Per-Alarm Dynamic RGB LED Illumination
+if (current == SCR_ALERT_ALARM || alarms::isRinging()) {
+  if (now - lastAlarmLedBlinkMs &gt;= 200) { // Rapid 200ms alarm beacon
+    lastAlarmLedBlinkMs = now;
+    alarmLedBlinkState = !alarmLedBlinkState;
+  }
+  if (alarmLedBlinkState) {
+    const Alarm&amp; a = alarms::getRinging();
+    if (a.r == 0 &amp;&amp; a.g == 0 &amp;&amp; a.b == 0) {
+      setStatusLedRgb(255, 0, 0); // Safe fallback to bright red
+    } else {
+      setStatusLedRgb(a.r, a.g, a.b); // Drive custom chosen alarm color
+    }
+  } else {
+    setStatusLed(false, false, false);
+  }
+  return;
+}</code></pre>
+
+<h2>2.5 Software: BLE Command Serialization Pipeline (Flutter)</h2>
+<p>
+In <code>lib/services/ble_command_service.dart</code>, alarm configurations created in the Flutter UI (including the interactive RGB color wheel) are serialized into the hardware command format:
+</p>
+<pre><code>// ble_command_service.dart: Serializing Alarms with RGB Color Channels
+Future&lt;BleCommandResult&gt; syncAlarms(List&lt;AlarmItem&gt; alarms) async {
+  if (!_bleManager.isConnected) return const BleCommandResult.disconnected();
+
+  try {
+    // 1. Flush existing hardware alarms
+    await sendRawCommand('CLEAR_ALARMS');
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    // 2. Transmit each alarm with day mask and RGB color
+    for (final alarm in alarms) {
+      final parts = _parseHourMinute(alarm.time);
+      final h = parts[0];
+      final m = parts[1];
+      final en = alarm.enabled ? 1 : 0;
+      final daysMask = _buildDaysMask(alarm.repeatDays);
+      final r = alarm.ledColor.red;
+      final g = alarm.ledColor.green;
+      final b = alarm.ledColor.blue;
+
+      // Protocol format: ADD_ALARM:H,M,EN,DAYS,R,G,B
+      await sendRawCommand('ADD_ALARM:$h,$m,$en,$daysMask,$r,$g,$b');
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+    return const BleCommandResult.synced(message: 'Alarms successfully synchronized.');
+  } catch (e) {
+    return BleCommandResult.syncFailed(message: 'Sync error: $e');
+  }
+}</code></pre>
+
+<div class="page-break"></div>
+
+<h1>Section 3: Deep Dive into the AI Posture Camera Engine</h1>
+
+<p>
+While the wearable capsule tracks torso tilt using its onboard 3-axis accelerometer, the desktop companion includes a dedicated computer vision AI posture tracker (<code>ai_posture_tracker/posture_tracker.py</code>). This engine uses standard webcam video to perform optical ergonomic analysis of cervical and spinal alignment.
+</p>
+
+<div class="diagram-box">
+  +----------------------------------------------------------------------------------+
+  |                   AI POSTURE CAMERA COMPUTER VISION PIPELINE                     |
+  +----------------------------------------------------------------------------------+
+  |                                                                                  |
+  |  [ Web Camera ] --> (OpenCV VideoCapture) --> BGR to RGB Frame Conversion        |
+  |                                                                                  |
+  |  [ MediaPipe Pose Landmarker Lite ] --> 33 3D Keypoints Extracted in Real-Time   |
+  |         |                                                                        |
+  |         +--> Landmark  0: Nose Tip                                               |
+  |         +--> Landmarks 7 &amp; 8: Left / Right Ear Tragus                            |
+  |         +--> Landmarks 11 &amp; 12: Left / Right Acromion (Shoulders)                |
+  |                                                                                  |
+  |  [ Ergonomic Geometry Engine ]                                                   |
+  |         |                                                                        |
+  |         +--> 1. Vertical Spine Compression Ratio (Slouch / Spine Sinking)        |
+  |         +--> 2. Craniovertebral Angle &amp; Ear-to-Shoulder Distance (Forward Head)   |
+  |         +--> 3. Horizontal Acromion Tilt Angle (Shoulder Imbalance)              |
+  |                                                                                  |
+  |  [ Posture Evaluation State Machine ]                                            |
+  |         |                                                                        |
+  |         +--> Absence Filter: If landmarks absent, freeze timer (No False Alerts) |
+  |         +--> Grace Period: 4 seconds of bad posture required to trigger alert    |
+  |         +--> Alert Trigger: Play gender-matched studio voice prompt              |
+  |         +--> Keyboard Snooze: Global Win32 Ctrl+B listener mutes for 30 seconds  |
+  |                                                                                  |
+  |  [ IPC &amp; Telemetry HTTP Server ]                                                 |
+  |         +--> Serves GET /status and POST /stop to Flutter application on port    |
+  +----------------------------------------------------------------------------------+
+</div>
+
+<h2>3.1 Key Skeletal Landmarks Tracked</h2>
+<p>
+The engine loads Google's <code>pose_landmarker_lite.task</code> model ($5.7	ext{ MB}$ quantized neural network). It extracts 33 body landmarks with 3D normalized coordinates $(x, y, z)$ and visibility scores. The posture engine isolates 5 critical points:
+</p>
+<table>
+  <thead>
+    <tr>
+      <th>Landmark ID</th>
+      <th>Anatomical Name</th>
+      <th>Coordinate Representation</th>
+      <th>Ergonomic Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>0</strong></td>
+      <td>Nose Tip</td>
+      <td>$(x_0, y_0, z_0)$</td>
+      <td>Head forward trajectory and downward chin drop.</td>
+    </tr>
+    <tr>
+      <td><strong>7</strong></td>
+      <td>Left Ear (Tragus)</td>
+      <td>$(x_7, y_7, z_7)$</td>
+      <td>Cervical spine curvature and ear-shoulder vertical alignment.</td>
+    </tr>
+    <tr>
+      <td><strong>8</strong></td>
+      <td>Right Ear (Tragus)</td>
+      <td>$(x_8, y_8, z_8)$</td>
+      <td>Cervical spine curvature (used symmetrically with left ear).</td>
+    </tr>
+    <tr>
+      <td><strong>11</strong></td>
+      <td>Left Shoulder (Acromion)</td>
+      <td>$(x_{11}, y_{11}, z_{11})$</td>
+      <td>Torso vertical height baseline and shoulder horizontal axis.</td>
+    </tr>
+    <tr>
+      <td><strong>12</strong></td>
+      <td>Right Shoulder (Acromion)</td>
+      <td>$(x_{12}, y_{12}, z_{12})$</td>
+      <td>Torso vertical height baseline and shoulder horizontal axis.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>3.2 Ergonomic Mathematical Formulas</h2>
+
+<h3>1. Shoulder Midpoint & Torso Baseline</h3>
+<p>
+The center of the shoulder girdle acts as the thoracic origin point:
+</p>
+<pre><code># Python: Calculating Shoulder Midpoint
+shoulder_mid_x = (l_sh.x + r_sh.x) / 2.0
+shoulder_mid_y = (l_sh.y + r_sh.y) / 2.0
+shoulder_width = math.dist((l_sh.x, l_sh.y), (r_sh.x, r_sh.y))</code></pre>
+
+<h3>2. Forward Head Posture (FHP) & Neck Compression Ratio</h3>
+<p>
+Forward head posture occurs when the ears translate forward and downward relative to the shoulders. The normalized vertical neck height $H_{	ext{neck}}$ is calculated relative to shoulder width $W_{	ext{shoulder}}$ to eliminate camera-distance dependency:
+</p>
+<pre><code># Python: Distance-Independent Neck Ratio
+ear_mid_y = (l_ear.y + r_ear.y) / 2.0
+current_neck_dist = (shoulder_mid_y - ear_mid_y) / shoulder_width
+
+# Comparison against calibrated baseline:
+neck_drop_ratio = current_neck_dist / baseline_neck_dist
+if neck_drop_ratio &lt; 0.82: # More than 18% vertical head compression
+    is_forward_head = True</code></pre>
+
+<h3>3. Shoulder Horizontal Tilt Angle ($\phi$)</h3>
+<p>
+Uneven shoulders indicate scoliosis-like leaning or resting on an armrest:
+</p>
+<pre><code># Python: Shoulder Tilt Calculation
+delta_y = r_sh.y - l_sh.y
+delta_x = r_sh.x - l_sh.x
+tilt_angle_rad = math.atan2(delta_y, delta_x)
+tilt_angle_deg = abs(math.degrees(tilt_angle_rad))
+
+if tilt_angle_deg &gt; 7.5: # More than 7.5 degrees lateral tilt
+    is_uneven_shoulders = True</code></pre>
+
+<h2>3.3 Gender-Adaptive Studio Voice Prompt Synthesis</h2>
+<p>
+Rather than generic beeps, the engine features natural studio-quality human voice prompts. To maintain appropriate personalized etiquette, <code>get_current_gender_voice_mode()</code> queries the user's local profile store (<code>settings_store.json</code>):
+</p>
+<pre><code># posture_tracker.py: Biological Sex Profile Resolution
+def get_current_gender_voice_mode():
+    store_path = os.path.join(local_app_data, 'HealthDeviceApp', 'settings_store.json')
+    if os.path.exists(store_path):
+        with open(store_path, 'r', encoding='utf-8') as sf:
+            store_data = json.load(sf)
+            bio_sex = store_data.get('hd_health_profile', {}).get('biologicalSex', '').lower()
+            if 'female' in bio_sex or 'woman' in bio_sex:
+                return 'maam'    # Plays voice_maam.mp3: "Straighten your back, ma'am"
+            elif 'male' in bio_sex or 'man' in bio_sex:
+                return 'sir'     # Plays voice_sir.mp3: "Please sit straight, sir"
+            else:
+                return 'neutral' # Plays voice_neutral.mp3: "Posture check: sit straight"
+    return 'neutral'</code></pre>
+
+<h2>3.4 Global Keyboard Snooze & Win32 Interoperability</h2>
+<p>
+When slouching during typing or work, taking hands off the keyboard to click a button is disruptive. The tracker registers a system-wide global hotkey (<strong>Ctrl + B</strong>) using the Win32 API (<code>RegisterHotKey</code>):
+</p>
+<pre><code># posture_tracker.py: System-Wide Global Hotkey Listener (Ctrl + B)
+def hotkey_listener_thread(state):
+    user32 = ctypes.windll.user32
+    HOTKEY_ID = 1
+    MOD_CONTROL = 0x0002
+    VK_B = 0x42 # 'B' virtual key code
+
+    if user32.RegisterHotKey(None, HOTKEY_ID, MOD_CONTROL, VK_B):
+        msg = ctypes.wintypes.MSG()
+        while state.running:
+            if user32.GetMessageA(ctypes.byref(msg), None, 0, 0) != 0:
+                if msg.message == 0x0312 and msg.wParam == HOTKEY_ID: // WM_HOTKEY
+                    state.snooze_until = time.time() + 30.0 # 30s snooze
+                    state.status = "Snoozed (Ctrl+B)"
+                user32.TranslateMessage(ctypes.byref(msg))
+                user32.DispatchMessageA(ctypes.byref(msg))
+        user32.UnregisterHotKey(None, HOTKEY_ID)</code></pre>
+
+<h2>3.5 Headless Background Operation & Inter-Process Communication (IPC)</h2>
+<p>
+The tracker supports full background execution without keeping an active console window open:
+</p>
+<ul>
+  <li><strong>Launch Via <code>pythonw.exe</code>:</strong> Eliminates command-line window flicker.</li>
+  <li><strong>Safe Window Close:</strong> Clicking the 'X' button on the OpenCV preview window toggles <code>show_window = False</code> but keeps the background tracker active.</li>
+  <li><strong>Embedded HTTP Control Server:</strong> The script runs a lightweight <code>BaseHTTPRequestHandler</code> on an ephemeral local port, exposing:
+    <ul>
+      <li><code>GET /status</code> &mdash; Returns live JSON containing current posture score, slouch duration, and camera status.</li>
+      <li><code>POST /recalibrate</code> &mdash; Re-captures baseline vector without restarting camera.</li>
+      <li><code>POST /stop</code> &mdash; Allows the Flutter desktop application to cleanly terminate the Python process on app close.</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="page-break"></div>
+
+<h1>Section 4: Technical Summary & Architectural Comparison</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Architectural Dimension</th>
+      <th>Wearable Hardware Capsule</th>
+      <th>Desktop AI Posture Vision</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Core Sensor</strong></td>
+      <td>MPU-6500 6-Axis IMU (Hardware Accelerometer)</td>
+      <td>Standard USB / Integrated Laptop Web Camera</td>
+    </tr>
+    <tr>
+      <td><strong>Computational Mechanism</strong></td>
+      <td>3D Gravity Vector Dot Product ($	heta = rccos(\hat{A} \cdot \hat{A}_0)$)</td>
+      <td>MediaPipe Neural Pose Landmark Detection (33 3D joints)</td>
+    </tr>
+    <tr>
+      <td><strong>Primary Tracking Focus</strong></td>
+      <td>Gross Torso / Thoracic spine forward and lateral tilt</td>
+      <td>Craniovertebral angle, forward head posture, shoulder height</td>
+    </tr>
+    <tr>
+      <td><strong>User Mobility</strong></td>
+      <td>Fully portable (walk, run, sit, indoors, outdoors)</td>
+      <td>Stationary desk / office workspace</td>
+    </tr>
+    <tr>
+      <td><strong>Escalation Mechanism</strong></td>
+      <td>30s Solid Red LED $	o$ 60s Double-Beep Piezo buzzer</td>
+      <td>4s grace period $	o$ Personalized human voice prompt</td>
+    </tr>
+    <tr>
+      <td><strong>Snooze Method</strong></td>
+      <td>Physical hardware push button on GPIO 3</td>
+      <td>Global keyboard hotkey (<strong>Ctrl + B</strong>)</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout callout-warn">
+  <div class="callout-title">Synergistic Operation</div>
+  The two systems complement each other. When working at a desk, the AI Posture Camera detects subtle forward-head neck compression that an accelerometer on the chest or wrist might miss. When walking or away from the desk, the wearable hardware capsule maintains step counts, heart rate monitoring, continuous IMU activity tracking, and active alarm scheduling.
+</div>
+
+<p style="text-align: center; margin-top: 30px; color: #64748b; font-size: 8.5pt;">
+&copy; 2026 HealthDevice Development Team &mdash; Shaurya Gupta &bull; All Rights Reserved.
+</p>
+
+</body>
+</html>
